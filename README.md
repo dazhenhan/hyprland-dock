@@ -2,6 +2,8 @@
 
 A lightweight macOS-inspired application dock for Hyprland, built with Quickshell and Qt/QML.
 
+![Hyprland Dock running at the bottom of a Hyprland desktop](preview.png)
+
 ## Features
 
 - Smooth pointer-distance magnification
