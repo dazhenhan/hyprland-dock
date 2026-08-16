@@ -37,7 +37,9 @@ ShellRoot {
     path: Quickshell.shellDir + "/config/dock.json"
     watchChanges: true
     onLoaded: root.loadSettings(text())
-    onFileChanged: root.loadSettings(text())
+    // FileView.text() is still stale inside onFileChanged. Reload first and
+    // parse the fresh contents when onLoaded fires.
+    onFileChanged: reload()
   }
 
   Variants {
