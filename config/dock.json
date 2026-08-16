@@ -1,6 +1,6 @@
 {
-  "iconSize": 48,
-  "magnification": 1.3,
+  "iconSize": 42,
+  "magnification": 1.2,
   "magnificationRadius": 95,
   "margin": 10,
   "reserveSpace": true,
@@ -8,8 +8,9 @@
   "pinned": [
     "org.gnome.Nautilus",
     "com.mitchellh.ghostty",
-    "chromium",
+    "com.google.Chrome",
     "code",
-    "obsidian"
+    "obsidian",
+    "chatgpt"
   ]
 }
