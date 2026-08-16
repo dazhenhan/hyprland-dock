@@ -13,7 +13,6 @@ ShellRoot {
     margin: 10,
     reserveSpace: true,
     clickAction: "focus-or-launch",
-    warpCursorOnFocus: true,
     pinned: [
       "org.gnome.Nautilus",
       "com.mitchellh.ghostty",

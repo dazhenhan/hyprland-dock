@@ -38,7 +38,6 @@ Edit [`config/dock.json`](config/dock.json):
   "margin": 10,
   "reserveSpace": true,
   "clickAction": "focus-or-launch",
-  "warpCursorOnFocus": true,
   "pinned": [
     "org.gnome.Nautilus",
     "com.mitchellh.ghostty",
@@ -57,7 +56,6 @@ Edit [`config/dock.json`](config/dock.json):
 | `margin` | Distance between the dock and screen edge |
 | `reserveSpace` | When `true`, tiled windows stop above the dock |
 | `clickAction` | `focus-or-launch` focuses an existing window; `launch` always starts a new instance |
-| `warpCursorOnFocus` | Whether Hyprland moves the pointer into a focused window on another workspace |
 | `pinned` | Ordered desktop-entry IDs displayed in the dock |
 
 Pinned values are desktop-entry filenames without the `.desktop` suffix. List available IDs with:
@@ -69,6 +67,29 @@ find /usr/share/applications ~/.local/share/applications \
 ```
 
 The configuration file is watched and updates automatically.
+
+### Disable cursor warping
+
+Hyprland controls whether the pointer moves when focus switches to a window on another workspace. This is compositor-wide behavior and cannot be reliably overridden by the dock.
+
+On Omarchy, add this override to `~/.config/hypr/looknfeel.lua`:
+
+```lua
+hl.config({
+  cursor = {
+    warp_on_change_workspace = 0,
+  },
+})
+```
+
+Hyprland normally reloads after the file is saved. Validate the configuration with:
+
+```bash
+hyprctl reload
+hyprctl configerrors
+```
+
+This disables cursor warping for all workspace changes, not only dock clicks.
 
 ## Roadmap
 
