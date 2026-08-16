@@ -8,7 +8,6 @@ config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 bin_home="${XDG_BIN_HOME:-$HOME/.local/bin}"
 app_dir="$data_home/hyprland-dock"
 config_dir="$config_home/hyprland-dock"
-autostart_dir="$config_home/autostart"
 install_autostart=true
 
 usage() {
@@ -89,18 +88,7 @@ else
 fi
 
 if $install_autostart; then
-  install -d "$autostart_dir"
-  cat >"$autostart_dir/hyprland-dock.desktop" <<EOF
-[Desktop Entry]
-Type=Application
-Name=Hyprland Dock
-Comment=macOS-inspired application dock for Hyprland
-Exec="$bin_home/hyprland-dock" --daemonize
-OnlyShowIn=Hyprland;
-X-GNOME-Autostart-enabled=true
-EOF
-  chmod 0644 "$autostart_dir/hyprland-dock.desktop"
-  echo "Installed autostart entry: $autostart_dir/hyprland-dock.desktop"
+  "$bin_home/hyprland-dock" autostart enable
 fi
 
 cat <<EOF

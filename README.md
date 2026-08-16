@@ -38,6 +38,16 @@ Run the dock immediately with:
 hyprland-dock --daemonize
 ```
 
+Manage autostart later from the CLI:
+
+```bash
+hyprland-dock autostart status
+hyprland-dock autostart enable
+hyprland-dock autostart disable
+```
+
+Run `hyprland-dock help` to see every available command.
+
 If your Hyprland session does not process XDG autostart entries, add one of these manually:
 
 ```lua
@@ -53,12 +63,12 @@ exec-once = hyprland-dock
 ### Update or remove
 
 ```bash
-hyprland-dock --update
-hyprland-dock --restart
-hyprland-dock --uninstall
+hyprland-dock update
+hyprland-dock restart
+hyprland-dock uninstall
 ```
 
-Uninstalling preserves the configuration. Remove that too with `hyprland-dock --uninstall --purge`.
+The older `--update`, `--restart`, and `--uninstall` forms remain supported. Uninstalling preserves the configuration; remove it too with `hyprland-dock uninstall --purge`.
 
 ### Development
 

@@ -2,44 +2,111 @@
 set -euo pipefail
 
 app_dir="${XDG_DATA_HOME:-$HOME/.local/share}/hyprland-dock"
-config_file="${XDG_CONFIG_HOME:-$HOME/.config}/hyprland-dock/dock.json"
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+config_file="$config_home/hyprland-dock/dock.json"
+autostart_file="$config_home/autostart/hyprland-dock.desktop"
 install_url="https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh"
+launcher_path="$(cd -- "$(dirname -- "$0")" && pwd)/$(basename -- "$0")"
+
+print_help() {
+  cat <<'EOF'
+Hyprland Dock - a macOS-inspired application dock for Hyprland
+
+Usage:
+  hyprland-dock [QUICKSHELL OPTIONS]
+  hyprland-dock <COMMAND> [OPTION]
+
+Commands:
+  help                         Show this help
+  autostart enable             Start the dock when the desktop session starts
+  autostart disable            Disable automatic startup
+  autostart status             Show whether automatic startup is enabled
+  update                       Download and install the latest version
+  restart                      Restart the dock in the background
+  stop                         Stop the running dock
+  uninstall [--purge]          Uninstall; --purge also removes configuration
+
+Options such as --daemonize and --no-color are passed through to Quickshell
+when no command is given.
+EOF
+  printf '\nConfiguration:\n  %s\n' "$config_file"
+}
+
+enable_autostart() {
+  install -d "$(dirname -- "$autostart_file")"
+  cat >"$autostart_file" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Hyprland Dock
+Comment=macOS-inspired application dock for Hyprland
+Exec="$launcher_path" --daemonize
+OnlyShowIn=Hyprland;
+X-GNOME-Autostart-enabled=true
+EOF
+  chmod 0644 "$autostart_file"
+  echo "Autostart enabled: $autostart_file"
+}
+
+disable_autostart() {
+  rm -f -- "$autostart_file"
+  echo "Autostart disabled."
+}
+
+autostart() {
+  case "${1:-status}" in
+    enable) enable_autostart ;;
+    disable) disable_autostart ;;
+    status)
+      if [[ -f "$autostart_file" ]]; then
+        echo "Autostart is enabled: $autostart_file"
+      else
+        echo "Autostart is disabled."
+      fi
+      ;;
+    help|--help|-h)
+      cat <<'EOF'
+Usage: hyprland-dock autostart <enable|disable|status>
+
+Manage the XDG autostart entry for Hyprland Dock.
+EOF
+      ;;
+    *)
+      echo "Unknown autostart action: $1" >&2
+      echo "Usage: hyprland-dock autostart <enable|disable|status>" >&2
+      exit 2
+      ;;
+  esac
+}
 
 case "${1:-}" in
-  --update)
-    if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/autostart/hyprland-dock.desktop" ]]; then
+  help|--help|-h)
+    print_help
+    exit
+    ;;
+  autostart)
+    autostart "${2:-status}"
+    exit
+    ;;
+  update|--update)
+    if [[ -f "$autostart_file" ]]; then
       curl -fsSL "$install_url" | HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash
     else
       curl -fsSL "$install_url" | HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash -s -- --no-autostart
     fi
     exit
     ;;
-  --stop)
+  stop|--stop)
     qs kill -p "$app_dir" --any-display >/dev/null 2>&1 || true
     exit
     ;;
-  --restart)
+  restart|--restart)
     qs kill -p "$app_dir" --any-display >/dev/null 2>&1 || true
     shift
     exec env HYPRLAND_DOCK_CONFIG="$config_file" qs -n -d -p "$app_dir" "$@"
     ;;
-  --uninstall)
+  uninstall|--uninstall)
     shift
     exec "$app_dir/uninstall.sh" "$@"
-    ;;
-  --help|-h)
-    cat <<'EOF'
-Usage: hyprland-dock [OPTION] [QUICKSHELL OPTIONS]
-
-  --update       Download and install the latest version
-  --stop         Stop the running dock
-  --restart      Restart the dock in the background
-  --uninstall    Remove the dock while preserving user configuration
-  --help         Show this help
-
-With no dock option, remaining arguments are passed to Quickshell.
-EOF
-    exit
     ;;
 esac
 
