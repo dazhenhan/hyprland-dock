@@ -13,19 +13,47 @@ PanelWindow {
   readonly property int edgeMargin: settings.margin === undefined ? 10 : settings.margin
   readonly property bool reserveSpace: settings.reserveSpace === undefined ? true : settings.reserveSpace
   readonly property string clickAction: settings.clickAction || "focus-or-launch"
+  readonly property string requestedPosition: settings.position || "bottom"
+  readonly property string position: ["top", "bottom", "left", "right"].indexOf(requestedPosition) >= 0
+    ? requestedPosition
+    : "bottom"
+  readonly property bool vertical: position === "left" || position === "right"
+  readonly property bool fullLength: settings.fullLength === undefined ? false : settings.fullLength
   readonly property var pinned: settings.pinned || []
   readonly property int itemSize: iconSize + 14
-  readonly property int reservedHeight: iconSize + 24 + edgeMargin
-  readonly property int horizontalPadding: 10
-  readonly property real pointerX: pointer.hovered ? pointer.point.position.x : -10000
+  readonly property int reservedSize: iconSize + 24 + edgeMargin
+  readonly property int mainPadding: 10
+  readonly property int crossExtent: vertical
+    ? Math.ceil(iconSize * magnification + 80)
+    : Math.ceil(iconSize * magnification + 48)
+  readonly property real pointerPosition: !pointer.hovered
+    ? -10000
+    : vertical
+      ? pointer.point.position.y - dockLayout.y
+      : pointer.point.position.x - dockLayout.x
 
-  anchors { bottom: true }
-  margins.bottom: edgeMargin
-  implicitWidth: dockBackground.width
-  implicitHeight: Math.ceil(iconSize * magnification + 48)
+  anchors {
+    top: position === "top" || (vertical && fullLength)
+    bottom: position === "bottom" || (vertical && fullLength)
+    left: position === "left" || (!vertical && fullLength)
+    right: position === "right" || (!vertical && fullLength)
+  }
+  margins {
+    top: position === "top" ? edgeMargin : 0
+    bottom: position === "bottom" ? edgeMargin : 0
+    left: position === "left" ? edgeMargin : 0
+    right: position === "right" ? edgeMargin : 0
+  }
+
+  implicitWidth: vertical
+    ? crossExtent
+    : fullLength ? 0 : dockLayout.implicitWidth + mainPadding * 2
+  implicitHeight: vertical
+    ? fullLength ? 0 : dockLayout.implicitHeight + mainPadding * 2
+    : crossExtent
   color: "transparent"
   exclusionMode: reserveSpace ? ExclusionMode.Normal : ExclusionMode.Ignore
-  WlrLayershell.exclusiveZone: reserveSpace ? reservedHeight : 0
+  WlrLayershell.exclusiveZone: reserveSpace ? reservedSize : 0
   WlrLayershell.namespace: "hyprland-dock"
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
@@ -33,10 +61,10 @@ PanelWindow {
   Rectangle {
     id: dockBackground
 
-    width: dockRow.width + root.horizontalPadding * 2
-    height: root.iconSize + 24
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
+    x: root.position === "right" ? parent.width - width : 0
+    y: root.position === "bottom" ? parent.height - height : 0
+    width: root.vertical ? root.iconSize + 24 : parent.width
+    height: root.vertical ? parent.height : root.iconSize + 24
     radius: 20
     color: Qt.rgba(0.08, 0.09, 0.11, 0.88)
     border.width: 1
@@ -51,12 +79,14 @@ PanelWindow {
       border.color: Qt.rgba(0, 0, 0, 0.28)
     }
 
-    Row {
-      id: dockRow
+    Grid {
+      id: dockLayout
 
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.bottom: parent.bottom
-      anchors.bottomMargin: 6
+      anchors.centerIn: parent
+      // Keep one spare cell so a settings reload cannot transiently reduce the
+      // grid capacity before the repeater updates its delegates.
+      columns: root.vertical ? 1 : Math.max(1, root.pinned.length + 1)
+      rows: root.vertical ? Math.max(1, root.pinned.length + 1) : 1
 
       Repeater {
         model: root.pinned
@@ -69,8 +99,10 @@ PanelWindow {
           iconSize: root.iconSize
           magnification: root.magnification
           magnificationRadius: root.magnificationRadius
-          pointerX: root.pointerX - dockRow.x
+          pointerPosition: root.pointerPosition
           clickAction: root.clickAction
+          position: root.position
+          vertical: root.vertical
         }
       }
     }

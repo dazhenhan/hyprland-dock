@@ -11,8 +11,10 @@ Item {
   required property int iconSize
   required property real magnification
   required property real magnificationRadius
-  required property real pointerX
+  required property real pointerPosition
   required property string clickAction
+  required property string position
+  required property bool vertical
 
   // Reading the model makes this binding update when Quickshell finishes its
   // asynchronous desktop-entry scan. Calling byId() alone is not reactive.
@@ -26,8 +28,9 @@ Item {
     var modelRevision = toplevels.length
     return findRunningToplevel()
   }
-  readonly property real distance: Math.abs(pointerX - (x + width / 2))
-  readonly property real influence: pointerX < -1000
+  readonly property real itemCenter: vertical ? y + height / 2 : x + width / 2
+  readonly property real distance: Math.abs(pointerPosition - itemCenter)
+  readonly property real influence: pointerPosition < -1000
     ? 0
     : Math.exp(-(distance * distance) / (magnificationRadius * magnificationRadius))
   readonly property real iconScale: 1 + (magnification - 1) * influence
@@ -72,18 +75,25 @@ Item {
     launch()
   }
 
-  width: slotSize
-  height: slotSize + 6
+  width: vertical ? slotSize + 6 : slotSize
+  height: vertical ? slotSize : slotSize + 6
 
   Item {
     id: iconContainer
 
+    x: root.vertical
+      ? root.position === "left" ? 6 : root.width - root.iconSize - 6
+      : (root.width - root.iconSize) / 2
+    y: root.vertical
+      ? (root.height - root.iconSize) / 2
+      : root.position === "top" ? 6 : root.height - root.iconSize - 6
     width: root.iconSize
     height: root.iconSize
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: 6
-    transformOrigin: Item.Bottom
+    transformOrigin: root.position === "top"
+      ? Item.Top
+      : root.position === "left"
+        ? Item.Left
+        : root.position === "right" ? Item.Right : Item.Bottom
     scale: root.iconScale
 
     Behavior on scale {
@@ -111,9 +121,16 @@ Item {
       width: 4
       height: 4
       radius: 2
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.top: parent.bottom
-      anchors.topMargin: 4
+      x: root.position === "left"
+        ? iconContainer.width + 4
+        : root.position === "right"
+          ? -8
+          : (iconContainer.width - width) / 2
+      y: root.position === "top"
+        ? -8
+        : root.position === "bottom"
+          ? iconContainer.height + 4
+          : (iconContainer.height - height) / 2
       color: root.runningToplevel ? "#f5f5f5" : "transparent"
     }
   }
@@ -122,9 +139,16 @@ Item {
     id: tooltip
 
     visible: mouse.hovered
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: iconContainer.top
-    anchors.bottomMargin: 12
+    x: root.position === "left"
+      ? iconContainer.x + iconContainer.width + 12
+      : root.position === "right"
+        ? iconContainer.x - width - 12
+        : (root.width - width) / 2
+    y: root.position === "top"
+      ? iconContainer.y + iconContainer.height + 12
+      : root.position === "bottom"
+        ? iconContainer.y - height - 12
+        : (root.height - height) / 2
     width: tooltipText.implicitWidth + 18
     height: tooltipText.implicitHeight + 10
     radius: 8

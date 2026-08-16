@@ -90,6 +90,8 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
   "magnification": 1.2,
   "magnificationRadius": 95,
   "margin": 10,
+  "position": "bottom",
+  "fullLength": false,
   "reserveSpace": true,
   "clickAction": "focus-or-launch",
   "pinned": [
@@ -108,7 +110,9 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
 | `magnification` | Maximum icon scale under the pointer |
 | `magnificationRadius` | Distance over which nearby icons magnify |
 | `margin` | Distance between the dock and screen edge |
-| `reserveSpace` | When `true`, tiled windows stop above the dock |
+| `position` | Screen edge: `top`, `bottom`, `left`, or `right` |
+| `fullLength` | Fill the screen width, or height for a vertical dock |
+| `reserveSpace` | When `true`, tiled windows stop beside the dock |
 | `clickAction` | `focus-or-launch` focuses an existing window; `launch` always starts a new instance |
 | `pinned` | Ordered desktop-entry IDs displayed in the dock |
 
@@ -121,6 +125,15 @@ find /usr/share/applications ~/.local/share/applications \
 ```
 
 The configuration file is watched and updates automatically.
+
+For a full-height vertical dock on the left, use:
+
+```json
+{
+  "position": "left",
+  "fullLength": true
+}
+```
 
 ### Disable cursor warping
 

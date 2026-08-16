@@ -14,6 +14,8 @@ ShellRoot {
     magnification: 1.2,
     magnificationRadius: 95,
     margin: 10,
+    position: "bottom",
+    fullLength: false,
     reserveSpace: true,
     clickAction: "focus-or-launch",
     pinned: [
