@@ -82,7 +82,15 @@ PanelWindow {
     Grid {
       id: dockLayout
 
-      anchors.centerIn: parent
+      // Offset the layout toward the screen edge so the icon itself, rather
+      // than the icon-plus-indicator slot, is centered in the background.
+      x: root.vertical
+        ? root.position === "left" ? 6 : parent.width - implicitWidth - 6
+        : (parent.width - implicitWidth) / 2
+      y: root.vertical
+        ? (parent.height - implicitHeight) / 2
+        : root.position === "top" ? 6 : parent.height - implicitHeight - 6
+
       // Keep one spare cell so a settings reload cannot transiently reduce the
       // grid capacity before the repeater updates its delegates.
       columns: root.vertical ? 1 : Math.max(1, root.pinned.length + 1)

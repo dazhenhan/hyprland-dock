@@ -122,14 +122,14 @@ Item {
       height: 4
       radius: 2
       x: root.position === "left"
-        ? iconContainer.width + 4
+        ? iconContainer.width + 2
         : root.position === "right"
-          ? -8
+          ? -6
           : (iconContainer.width - width) / 2
       y: root.position === "top"
-        ? -8
+        ? -6
         : root.position === "bottom"
-          ? iconContainer.height + 4
+          ? iconContainer.height + 2
           : (iconContainer.height - height) / 2
       color: root.runningToplevel ? "#f5f5f5" : "transparent"
     }
