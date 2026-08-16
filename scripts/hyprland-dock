@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+app_dir="${XDG_DATA_HOME:-$HOME/.local/share}/hyprland-dock"
+config_file="${XDG_CONFIG_HOME:-$HOME/.config}/hyprland-dock/dock.json"
+install_url="https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh"
+
+case "${1:-}" in
+  --update)
+    if [[ -f "${XDG_CONFIG_HOME:-$HOME/.config}/autostart/hyprland-dock.desktop" ]]; then
+      curl -fsSL "$install_url" | HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash
+    else
+      curl -fsSL "$install_url" | HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash -s -- --no-autostart
+    fi
+    exit
+    ;;
+  --stop)
+    qs kill -p "$app_dir" --any-display >/dev/null 2>&1 || true
+    exit
+    ;;
+  --restart)
+    qs kill -p "$app_dir" --any-display >/dev/null 2>&1 || true
+    shift
+    exec env HYPRLAND_DOCK_CONFIG="$config_file" qs -n -d -p "$app_dir" "$@"
+    ;;
+  --uninstall)
+    shift
+    exec "$app_dir/uninstall.sh" "$@"
+    ;;
+  --help|-h)
+    cat <<'EOF'
+Usage: hyprland-dock [OPTION] [QUICKSHELL OPTIONS]
+
+  --update       Download and install the latest version
+  --stop         Stop the running dock
+  --restart      Restart the dock in the background
+  --uninstall    Remove the dock while preserving user configuration
+  --help         Show this help
+
+With no dock option, remaining arguments are passed to Quickshell.
+EOF
+    exit
+    ;;
+esac
+
+if [[ ! -f "$app_dir/shell.qml" ]]; then
+  echo "hyprland-dock: application files not found; run the installer again" >&2
+  exit 1
+fi
+
+exec env HYPRLAND_DOCK_CONFIG="$config_file" qs -n -p "$app_dir" "$@"

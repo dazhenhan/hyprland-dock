@@ -18,7 +18,51 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Quickshell 0.3 or newer
 - A working freedesktop icon theme
 
-## Run
+## Install
+
+Make sure Quickshell is installed, then run:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh | bash
+```
+
+The installer uses only user directories, requires no `sudo`, and creates an XDG autostart entry. To install without autostart:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh | bash -s -- --no-autostart
+```
+
+Run the dock immediately with:
+
+```bash
+hyprland-dock --daemonize
+```
+
+If your Hyprland session does not process XDG autostart entries, add one of these manually:
+
+```lua
+-- Omarchy: ~/.config/hypr/autostart.lua
+o.launch_on_start("hyprland-dock")
+```
+
+```ini
+# Standard Hyprland: ~/.config/hypr/hyprland.conf
+exec-once = hyprland-dock
+```
+
+### Update or remove
+
+```bash
+hyprland-dock --update
+hyprland-dock --restart
+hyprland-dock --uninstall
+```
+
+Uninstalling preserves the configuration. Remove that too with `hyprland-dock --uninstall --purge`.
+
+### Development
+
+Clone the repository and run directly from it:
 
 ```bash
 ./scripts/run
@@ -28,12 +72,12 @@ Quickshell watches the QML files, so UI changes reload while developing.
 
 ## Configure
 
-Edit [`config/dock.json`](config/dock.json):
+Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the repository, edit [`config/dock.json`](config/dock.json):
 
 ```json
 {
-  "iconSize": 48,
-  "magnification": 1.3,
+  "iconSize": 42,
+  "magnification": 1.2,
   "magnificationRadius": 95,
   "margin": 10,
   "reserveSpace": true,

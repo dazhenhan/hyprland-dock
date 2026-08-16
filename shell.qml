@@ -6,9 +6,12 @@ import "components"
 ShellRoot {
   id: root
 
+  readonly property string externalConfigPath: Quickshell.env("HYPRLAND_DOCK_CONFIG")
+  readonly property string configPath: externalConfigPath || Quickshell.shellDir + "/config/dock.json"
+
   property var settings: ({
-    iconSize: 48,
-    magnification: 1.3,
+    iconSize: 42,
+    magnification: 1.2,
     magnificationRadius: 95,
     margin: 10,
     reserveSpace: true,
@@ -16,9 +19,10 @@ ShellRoot {
     pinned: [
       "org.gnome.Nautilus",
       "com.mitchellh.ghostty",
-      "chromium",
+      "com.google.Chrome",
       "code",
-      "obsidian"
+      "obsidian",
+      "chatgpt"
     ]
   })
 
@@ -34,7 +38,7 @@ ShellRoot {
   }
 
   FileView {
-    path: Quickshell.shellDir + "/config/dock.json"
+    path: root.configPath
     watchChanges: true
     onLoaded: root.loadSettings(text())
     // FileView.text() is still stale inside onFileChanged. Reload first and
