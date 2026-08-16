@@ -70,6 +70,38 @@ hyprland-dock uninstall
 
 The older `--update`, `--restart`, and `--uninstall` forms remain supported. Uninstalling preserves the configuration; remove it too with `hyprland-dock uninstall --purge`.
 
+## Install as an Omarchy plugin
+
+Omarchy Quattro users can run the dock inside the existing Omarchy shell instead of starting a second Quickshell process. If the standalone dock is already running, disable its autostart and stop it first:
+
+```bash
+hyprland-dock autostart disable
+hyprland-dock stop
+```
+
+Then install and enable the plugin:
+
+```bash
+omarchy plugin add https://github.com/nick-friedrich/hyprland-dock.git --enable
+```
+
+The plugin uses the same `~/.config/hyprland-dock/dock.json` configuration as the standalone version. On a plugin-only installation, create it from the bundled defaults:
+
+```bash
+mkdir -p ~/.config/hyprland-dock
+cp ~/.config/omarchy/plugins/io.github.nick-friedrich.hyprland-dock/config/dock.json \
+  ~/.config/hyprland-dock/dock.json
+```
+
+Update or remove the plugin with:
+
+```bash
+omarchy plugin update io.github.nick-friedrich.hyprland-dock
+omarchy plugin remove io.github.nick-friedrich.hyprland-dock
+```
+
+Do not run the standalone and plugin versions together, or two docks will appear.
+
 ### Development
 
 Clone the repository and run directly from it:
