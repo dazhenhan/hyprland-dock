@@ -13,6 +13,7 @@ PanelWindow {
   readonly property int edgeMargin: settings.margin === undefined ? 10 : settings.margin
   readonly property bool reserveSpace: settings.reserveSpace === undefined ? true : settings.reserveSpace
   readonly property string clickAction: settings.clickAction || "focus-or-launch"
+  readonly property bool warpCursorOnFocus: settings.warpCursorOnFocus === undefined ? true : settings.warpCursorOnFocus
   readonly property var pinned: settings.pinned || []
   readonly property int itemSize: iconSize + 14
   readonly property int reservedHeight: iconSize + 24 + edgeMargin
@@ -71,6 +72,7 @@ PanelWindow {
           magnificationRadius: root.magnificationRadius
           pointerX: root.pointerX - dockRow.x
           clickAction: root.clickAction
+          warpCursorOnFocus: root.warpCursorOnFocus
         }
       }
     }

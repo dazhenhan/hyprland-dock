@@ -38,6 +38,7 @@ Edit [`config/dock.json`](config/dock.json):
   "margin": 10,
   "reserveSpace": true,
   "clickAction": "focus-or-launch",
+  "warpCursorOnFocus": true,
   "pinned": [
     "org.gnome.Nautilus",
     "com.mitchellh.ghostty",
@@ -56,6 +57,7 @@ Edit [`config/dock.json`](config/dock.json):
 | `margin` | Distance between the dock and screen edge |
 | `reserveSpace` | When `true`, tiled windows stop above the dock |
 | `clickAction` | `focus-or-launch` focuses an existing window; `launch` always starts a new instance |
+| `warpCursorOnFocus` | Whether Hyprland moves the pointer into a focused window on another workspace |
 | `pinned` | Ordered desktop-entry IDs displayed in the dock |
 
 Pinned values are desktop-entry filenames without the `.desktop` suffix. List available IDs with:

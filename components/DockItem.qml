@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import Quickshell.Widgets
 
@@ -13,6 +14,7 @@ Item {
   required property real magnificationRadius
   required property real pointerX
   required property string clickAction
+  required property bool warpCursorOnFocus
 
   // Reading the model makes this binding update when Quickshell finishes its
   // asynchronous desktop-entry scan. Calling byId() alone is not reactive.
@@ -64,9 +66,44 @@ Item {
       Quickshell.execDetached(["gtk-launch", desktopId + ".desktop"])
   }
 
+  function hyprlandAddress(toplevel) {
+    var clients = Hyprland.toplevels.values || []
+    for (var i = 0; i < clients.length; ++i) {
+      if (clients[i].wayland === toplevel) {
+        var address = String(clients[i].address || "")
+        return address.indexOf("0x") === 0 ? address : "0x" + address
+      }
+    }
+    return ""
+  }
+
+  function activateWithoutWarp(toplevel) {
+    var address = hyprlandAddress(toplevel)
+    if (!address) {
+      // Fall back to the standard protocol if Hyprland has not associated its
+      // IPC client with the Wayland toplevel yet.
+      toplevel.activate()
+      return
+    }
+
+    // Hyprland's focus dispatcher obeys cursor:warp_on_change_workspace. Turn
+    // it off only for this dispatch, then restore the user's runtime value.
+    Quickshell.execDetached([
+      "bash", "-c",
+      "old=$(hyprctl getoption cursor:warp_on_change_workspace -j | jq -r '.int // 0'); " +
+        "trap 'hyprctl keyword cursor:warp_on_change_workspace \"$old\" >/dev/null' EXIT; " +
+        "hyprctl keyword cursor:warp_on_change_workspace 0 >/dev/null; " +
+        "hyprctl dispatch focuswindow \"address:$1\" >/dev/null",
+      "hyprland-dock-focus", address
+    ])
+  }
+
   function activateOrLaunch() {
     if (clickAction === "focus-or-launch" && runningToplevel) {
-      runningToplevel.activate()
+      if (warpCursorOnFocus)
+        runningToplevel.activate()
+      else
+        activateWithoutWarp(runningToplevel)
       return
     }
     launch()
