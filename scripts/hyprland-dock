@@ -5,7 +5,6 @@ app_dir="${XDG_DATA_HOME:-$HOME/.local/share}/hyprland-dock"
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 config_file="$config_home/hyprland-dock/dock.json"
 autostart_file="$config_home/autostart/hyprland-dock.desktop"
-install_url="https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh"
 launcher_path="$(cd -- "$(dirname -- "$0")" && pwd)/$(basename -- "$0")"
 
 print_help() {
@@ -88,10 +87,18 @@ case "${1:-}" in
     exit
     ;;
   update|--update)
+    # Run the installer already on disk instead of executing content
+    # downloaded from the network. install.sh fetches the application
+    # tarball and unpacks it without executing anything from it.
+    if [[ ! -f "$app_dir/install.sh" ]]; then
+      echo "hyprland-dock: installer not found at $app_dir/install.sh" >&2
+      echo "Reinstall from https://github.com/nick-friedrich/hyprland-dock" >&2
+      exit 1
+    fi
     if [[ -f "$autostart_file" ]]; then
-      curl -fsSL "$install_url" | HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash
+      HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash "$app_dir/install.sh"
     else
-      curl -fsSL "$install_url" | HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash -s -- --no-autostart
+      HYPRLAND_DOCK_FORCE_DOWNLOAD=1 bash "$app_dir/install.sh" --no-autostart
     fi
     exit
     ;;

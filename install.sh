@@ -79,6 +79,7 @@ install -m 0644 "$source_dir/shell.qml" "$app_dir/shell.qml"
 install -m 0644 "$source_dir/DockHost.qml" "$app_dir/DockHost.qml"
 install -m 0644 "$source_dir/LICENSE" "$app_dir/LICENSE"
 install -m 0755 "$source_dir/uninstall.sh" "$app_dir/uninstall.sh"
+install -m 0755 "$source_dir/install.sh" "$app_dir/install.sh"
 install -m 0755 "$source_dir/scripts/hyprland-dock" "$bin_home/hyprland-dock"
 
 if [[ ! -f "$config_dir/dock.json" ]]; then
