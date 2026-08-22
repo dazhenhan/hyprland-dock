@@ -105,6 +105,11 @@ Item {
     launch()
   }
 
+  function closeRunning() {
+    if (runningToplevel)
+      runningToplevel.close()
+  }
+
   width: vertical ? slotSize + 6 : slotSize
   height: vertical ? slotSize : slotSize + 6
   z: dragHandler.active ? 2 : 0
@@ -177,7 +182,7 @@ Item {
   Rectangle {
     id: tooltip
 
-    visible: mouse.hovered
+    visible: mouse.hovered && !contextMenu.visible
     x: root.position === "left"
       ? iconContainer.x + iconContainer.width + 12
       : root.position === "right"
@@ -215,6 +220,11 @@ Item {
     onTapped: root.activateOrLaunch()
   }
 
+  TapHandler {
+    acceptedButtons: Qt.RightButton
+    onTapped: contextMenu.open()
+  }
+
   DragHandler {
     id: dragHandler
 
@@ -233,5 +243,15 @@ Item {
         root.dragMoved((root.vertical ? root.y + root.height / 2 : root.x + root.width / 2)
           + (root.vertical ? activeTranslation.y : activeTranslation.x))
     }
+  }
+
+  DockContextMenu {
+    id: contextMenu
+
+    anchorItem: root
+    position: root.position
+    canClose: root.runningToplevel !== null
+    onOpenNewWindow: root.launch()
+    onCloseWindow: root.closeRunning()
   }
 }
