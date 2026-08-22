@@ -8,6 +8,10 @@ PanelWindow {
   id: root
 
   required property var settings
+  signal reorderRequested(int from, int to)
+
+  property int dragSource: -1
+  property int dragTarget: -1
 
   readonly property int iconSize: settings.iconSize || 52
   readonly property real magnification: settings.magnification || 1.65
@@ -33,6 +37,27 @@ PanelWindow {
     : vertical
       ? pointer.point.position.y - dockLayout.y
       : pointer.point.position.x - dockLayout.x
+
+  function reorderOffset(index) {
+    if (dragSource < dragTarget && index > dragSource && index <= dragTarget)
+      return -itemSize
+    if (dragSource > dragTarget && index >= dragTarget && index < dragSource)
+      return itemSize
+    return 0
+  }
+
+  function updateDragTarget(position) {
+    dragTarget = Math.max(0, Math.min(pinned.length - 1, Math.floor(position / itemSize)))
+  }
+
+  function finishDrag() {
+    var from = dragSource
+    var to = dragTarget
+    dragSource = -1
+    dragTarget = -1
+    if (from >= 0 && to >= 0 && from !== to)
+      reorderRequested(from, to)
+  }
 
   anchors {
     top: position === "top" || (vertical && fullLength)
@@ -103,8 +128,10 @@ PanelWindow {
 
         DockItem {
           required property string modelData
+          required property int index
 
           desktopId: modelData
+          itemIndex: index
           slotSize: root.itemSize
           iconSize: root.iconSize
           magnification: root.magnification
@@ -113,6 +140,13 @@ PanelWindow {
           clickAction: root.clickAction
           position: root.position
           vertical: root.vertical
+          reorderOffset: root.reorderOffset(index)
+          onDragStarted: itemIndex => {
+            root.dragSource = itemIndex
+            root.dragTarget = itemIndex
+          }
+          onDragMoved: mainPosition => root.updateDragTarget(mainPosition)
+          onDragFinished: root.finishDrag()
         }
       }
     }

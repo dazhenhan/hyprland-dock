@@ -9,8 +9,8 @@
   "clickAction": "focus-or-launch",
   "pinned": [
     "org.gnome.Nautilus",
-    "com.mitchellh.ghostty",
     "com.google.Chrome",
+    "com.mitchellh.ghostty",
     "code",
     "obsidian",
     "chatgpt"

@@ -10,6 +10,7 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Freedesktop application icons and launching
 - Focuses an existing application on another workspace
 - Running-application indicators
+- Drag-to-reorder with persistent pinned-app order
 - Optional reserved screen space
 - Live JSON configuration reload
 - Multi-monitor support
@@ -158,7 +159,7 @@ find /usr/share/applications ~/.local/share/applications \
   | sed 's#.*/##; s/\.desktop$//' | sort -u
 ```
 
-The configuration file is watched and updates automatically.
+The configuration file is watched and updates automatically. Drag a dock icon to another slot to reorder it; the new `pinned` order is written back to this file.
 
 For a full-height vertical dock on the left, use:
 
@@ -195,7 +196,7 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 ## Roadmap
 
 - Auto-hide and edge reveal
-- Pinning and drag-to-reorder
+- Pinning applications from the dock
 - Context menus
 - Theme integration
 

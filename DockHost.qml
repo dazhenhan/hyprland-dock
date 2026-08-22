@@ -40,14 +40,36 @@ Item {
     }
   }
 
+  function reorderPinned(from, to) {
+    if (from === to || from < 0 || to < 0
+        || from >= settings.pinned.length || to >= settings.pinned.length)
+      return
+
+    var pinned = settings.pinned.slice()
+    var moved = pinned.splice(from, 1)[0]
+    pinned.splice(to, 0, moved)
+
+    var updated = {}
+    for (var key in settings)
+      updated[key] = settings[key]
+    updated.pinned = pinned
+
+    settings = updated
+    configFile.setText(JSON.stringify(updated, null, 2) + "\n")
+  }
+
   FileView {
+    id: configFile
+
     path: root.configPath
     watchChanges: true
     printErrors: false
+    blockWrites: true
     onLoaded: root.loadSettings(text())
     // FileView.text() is still stale inside onFileChanged. Reload first and
     // parse the fresh contents when onLoaded fires.
     onFileChanged: reload()
+    onSaveFailed: error => console.warn("Dock: could not save " + root.configPath + ":", error)
   }
 
   Variants {
@@ -58,6 +80,7 @@ Item {
         required property var modelData
         screen: modelData
         settings: root.settings
+        onReorderRequested: (from, to) => root.reorderPinned(from, to)
       }
     }
   }
