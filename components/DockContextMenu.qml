@@ -7,17 +7,19 @@ PopupWindow {
   required property Item anchorItem
   required property string position
   required property bool canClose
+  required property bool autoHide
   signal openNewWindow()
   signal closeWindow()
   signal addApplication()
   signal removeFromDock()
+  signal toggleAutoHide()
 
   function open() {
     visible = true
   }
 
   implicitWidth: 180
-  implicitHeight: 174
+  implicitHeight: 212
   color: "transparent"
   grabFocus: true
 
@@ -78,6 +80,14 @@ PopupWindow {
         onTriggered: {
           root.visible = false
           root.removeFromDock()
+        }
+      }
+
+      DockMenuAction {
+        text: root.autoHide ? "Disable Auto-Hide" : "Enable Auto-Hide"
+        onTriggered: {
+          root.toggleAutoHide()
+          root.visible = false
         }
       }
 

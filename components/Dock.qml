@@ -11,9 +11,12 @@ PanelWindow {
   signal reorderRequested(int from, int to)
   signal pinRequested(string desktopId)
   signal unpinRequested(string desktopId)
+  signal autoHideRequested(bool enabled)
 
   property int dragSource: -1
   property int dragTarget: -1
+  property int openMenuCount: 0
+  property bool autoHideRevealed: false
 
   readonly property int iconSize: settings.iconSize || 52
   readonly property real magnification: settings.magnification || 1.65
@@ -26,6 +29,7 @@ PanelWindow {
       : Math.max(0, Math.min(1, value))
   }
   readonly property bool reserveSpace: settings.reserveSpace === undefined ? true : settings.reserveSpace
+  readonly property bool autoHide: settings.autoHide === undefined ? false : settings.autoHide
   readonly property string clickAction: settings.clickAction || "focus-or-launch"
   readonly property string requestedPosition: settings.position || "bottom"
   readonly property string position: ["top", "bottom", "left", "right"].indexOf(requestedPosition) >= 0
@@ -37,9 +41,13 @@ PanelWindow {
   readonly property int itemSize: iconSize + 14
   readonly property int reservedSize: iconSize + 24 + edgeMargin
   readonly property int mainPadding: 10
+  readonly property int revealThickness: 3
   readonly property int crossExtent: vertical
-    ? Math.ceil(iconSize * magnification + 80)
-    : Math.ceil(iconSize * magnification + 48)
+    ? Math.ceil(iconSize * magnification + 80) + edgeMargin
+    : Math.ceil(iconSize * magnification + 48) + edgeMargin
+  readonly property bool keepAutoHideOpen: windowPointer.hovered
+    || appPicker.visible || openMenuCount > 0 || dragSource >= 0
+  readonly property bool dockShown: !autoHide || autoHideRevealed
   readonly property real pointerPosition: !pointer.hovered
     ? -10000
     : vertical
@@ -67,19 +75,27 @@ PanelWindow {
       reorderRequested(from, to)
   }
 
+  function updateAutoHideState() {
+    if (!autoHide) {
+      hideTimer.stop()
+      autoHideRevealed = false
+    } else if (keepAutoHideOpen) {
+      hideTimer.stop()
+      autoHideRevealed = true
+    } else if (autoHideRevealed) {
+      hideTimer.restart()
+    }
+  }
+
+  onAutoHideChanged: updateAutoHideState()
+  onKeepAutoHideOpenChanged: updateAutoHideState()
+
   anchors {
     top: position === "top" || (vertical && fullLength)
     bottom: position === "bottom" || (vertical && fullLength)
     left: position === "left" || (!vertical && fullLength)
     right: position === "right" || (!vertical && fullLength)
   }
-  margins {
-    top: position === "top" ? edgeMargin : 0
-    bottom: position === "bottom" ? edgeMargin : 0
-    left: position === "left" ? edgeMargin : 0
-    right: position === "right" ? edgeMargin : 0
-  }
-
   implicitWidth: vertical
     ? crossExtent
     : fullLength ? 0 : dockLayout.implicitWidth + mainPadding * 2
@@ -87,23 +103,68 @@ PanelWindow {
     ? fullLength ? 0 : dockLayout.implicitHeight + mainPadding * 2
     : crossExtent
   color: "transparent"
-  exclusionMode: reserveSpace ? ExclusionMode.Normal : ExclusionMode.Ignore
-  WlrLayershell.exclusiveZone: reserveSpace ? reservedSize : 0
+  exclusionMode: reserveSpace && !autoHide ? ExclusionMode.Normal : ExclusionMode.Ignore
+  WlrLayershell.exclusiveZone: reserveSpace && !autoHide ? reservedSize : 0
   WlrLayershell.namespace: "hyprland-dock"
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+  mask: Region {
+    item: root.dockShown ? interactionArea : revealStrip
+  }
+
+  Timer {
+    id: hideTimer
+
+    interval: 800
+    onTriggered: if (root.autoHide && !root.keepAutoHideOpen)
+      root.autoHideRevealed = false
+  }
+
+  Item {
+    id: interactionArea
+
+    anchors.fill: parent
+  }
+
+  Item {
+    id: revealStrip
+
+    x: root.position === "right" ? parent.width - width : 0
+    y: root.position === "bottom" ? parent.height - height : 0
+    width: root.vertical ? root.revealThickness : parent.width
+    height: root.vertical ? parent.height : root.revealThickness
+  }
 
   Rectangle {
     id: dockBackground
 
-    x: root.position === "right" ? parent.width - width : 0
-    y: root.position === "bottom" ? parent.height - height : 0
+    x: root.vertical
+      ? root.position === "left" ? root.edgeMargin : parent.width - width - root.edgeMargin
+      : 0
+    y: root.vertical
+      ? 0
+      : root.position === "top" ? root.edgeMargin : parent.height - height - root.edgeMargin
     width: root.vertical ? root.iconSize + 24 : parent.width
     height: root.vertical ? parent.height : root.iconSize + 24
     radius: 20
     color: Qt.rgba(0.08, 0.09, 0.11, root.backgroundOpacity)
     border.width: 1
     border.color: Qt.rgba(1, 1, 1, 0.18)
+    transform: Translate {
+      x: !root.autoHide || root.dockShown
+        ? 0
+        : root.position === "left"
+          ? -(dockBackground.width + root.edgeMargin)
+          : root.position === "right" ? dockBackground.width + root.edgeMargin : 0
+      y: !root.autoHide || root.dockShown
+        ? 0
+        : root.position === "top"
+          ? -(dockBackground.height + root.edgeMargin)
+          : root.position === "bottom" ? dockBackground.height + root.edgeMargin : 0
+
+      Behavior on x { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+      Behavior on y { NumberAnimation { duration: 180; easing.type: Easing.OutCubic } }
+    }
 
     Rectangle {
       anchors.fill: parent
@@ -146,6 +207,7 @@ PanelWindow {
           magnificationRadius: root.magnificationRadius
           pointerPosition: root.pointerPosition
           clickAction: root.clickAction
+          autoHide: root.autoHide
           position: root.position
           vertical: root.vertical
           reorderOffset: root.reorderOffset(index)
@@ -157,8 +219,16 @@ PanelWindow {
           onDragFinished: root.finishDrag()
           onAddApplicationRequested: appPicker.open()
           onRemoveRequested: desktopId => root.unpinRequested(desktopId)
+          onAutoHideToggled: enabled => root.autoHideRequested(enabled)
+          onContextMenuVisibilityChanged: visible => {
+            root.openMenuCount = Math.max(0, root.openMenuCount + (visible ? 1 : -1))
+          }
         }
       }
+    }
+
+    HoverHandler {
+      id: pointer
     }
   }
 
@@ -172,6 +242,6 @@ PanelWindow {
   }
 
   HoverHandler {
-    id: pointer
+    id: windowPointer
   }
 }
