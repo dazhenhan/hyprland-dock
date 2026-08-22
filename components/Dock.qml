@@ -8,11 +8,23 @@ PanelWindow {
   id: root
 
   required property var settings
+  signal reorderRequested(int from, int to)
+  signal pinRequested(string desktopId)
+  signal unpinRequested(string desktopId)
+
+  property int dragSource: -1
+  property int dragTarget: -1
 
   readonly property int iconSize: settings.iconSize || 52
   readonly property real magnification: settings.magnification || 1.65
   readonly property real magnificationRadius: settings.magnificationRadius || 110
   readonly property int edgeMargin: settings.margin === undefined ? 10 : settings.margin
+  readonly property real backgroundOpacity: {
+    var value = Number(settings.backgroundOpacity)
+    return settings.backgroundOpacity === undefined || isNaN(value)
+      ? 0.88
+      : Math.max(0, Math.min(1, value))
+  }
   readonly property bool reserveSpace: settings.reserveSpace === undefined ? true : settings.reserveSpace
   readonly property string clickAction: settings.clickAction || "focus-or-launch"
   readonly property string requestedPosition: settings.position || "bottom"
@@ -33,6 +45,27 @@ PanelWindow {
     : vertical
       ? pointer.point.position.y - dockLayout.y
       : pointer.point.position.x - dockLayout.x
+
+  function reorderOffset(index) {
+    if (dragSource < dragTarget && index > dragSource && index <= dragTarget)
+      return -itemSize
+    if (dragSource > dragTarget && index >= dragTarget && index < dragSource)
+      return itemSize
+    return 0
+  }
+
+  function updateDragTarget(position) {
+    dragTarget = Math.max(0, Math.min(pinned.length - 1, Math.floor(position / itemSize)))
+  }
+
+  function finishDrag() {
+    var from = dragSource
+    var to = dragTarget
+    dragSource = -1
+    dragTarget = -1
+    if (from >= 0 && to >= 0 && from !== to)
+      reorderRequested(from, to)
+  }
 
   anchors {
     top: position === "top" || (vertical && fullLength)
@@ -68,7 +101,7 @@ PanelWindow {
     width: root.vertical ? root.iconSize + 24 : parent.width
     height: root.vertical ? parent.height : root.iconSize + 24
     radius: 20
-    color: Qt.rgba(0.08, 0.09, 0.11, 0.88)
+    color: Qt.rgba(0.08, 0.09, 0.11, root.backgroundOpacity)
     border.width: 1
     border.color: Qt.rgba(1, 1, 1, 0.18)
 
@@ -103,8 +136,10 @@ PanelWindow {
 
         DockItem {
           required property string modelData
+          required property int index
 
           desktopId: modelData
+          itemIndex: index
           slotSize: root.itemSize
           iconSize: root.iconSize
           magnification: root.magnification
@@ -113,9 +148,27 @@ PanelWindow {
           clickAction: root.clickAction
           position: root.position
           vertical: root.vertical
+          reorderOffset: root.reorderOffset(index)
+          onDragStarted: itemIndex => {
+            root.dragSource = itemIndex
+            root.dragTarget = itemIndex
+          }
+          onDragMoved: mainPosition => root.updateDragTarget(mainPosition)
+          onDragFinished: root.finishDrag()
+          onAddApplicationRequested: appPicker.open()
+          onRemoveRequested: desktopId => root.unpinRequested(desktopId)
         }
       }
     }
+  }
+
+  DockAppPicker {
+    id: appPicker
+
+    anchorItem: dockBackground
+    position: root.position
+    pinned: root.pinned
+    onApplicationSelected: desktopId => root.pinRequested(desktopId)
   }
 
   HoverHandler {

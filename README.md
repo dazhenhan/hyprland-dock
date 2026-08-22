@@ -10,6 +10,10 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Freedesktop application icons and launching
 - Focuses an existing application on another workspace
 - Running-application indicators
+- Drag-to-reorder with persistent pinned-app order
+- Right-click actions to launch, close, pin, or unpin applications
+- Fuzzy application search for adding dock items
+- Configurable dock background transparency
 - Optional reserved screen space
 - Live JSON configuration reload
 - Multi-monitor support
@@ -124,6 +128,7 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
   "magnification": 1.2,
   "magnificationRadius": 95,
   "margin": 10,
+  "backgroundOpacity": 0.88,
   "position": "bottom",
   "fullLength": false,
   "reserveSpace": true,
@@ -144,6 +149,7 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
 | `magnification` | Maximum icon scale under the pointer |
 | `magnificationRadius` | Distance over which nearby icons magnify |
 | `margin` | Distance between the dock and screen edge |
+| `backgroundOpacity` | Dock background opacity from `0.0` (transparent) to `1.0` (opaque) |
 | `position` | Screen edge: `top`, `bottom`, `left`, or `right` |
 | `fullLength` | Fill the screen width, or height for a vertical dock |
 | `reserveSpace` | When `true`, tiled windows stop beside the dock |
@@ -158,7 +164,7 @@ find /usr/share/applications ~/.local/share/applications \
   | sed 's#.*/##; s/\.desktop$//' | sort -u
 ```
 
-The configuration file is watched and updates automatically.
+The configuration file is watched and updates automatically. Drag a dock icon to another slot to reorder it; the new `pinned` order is written back to this file.
 
 For a full-height vertical dock on the left, use:
 
@@ -195,8 +201,6 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 ## Roadmap
 
 - Auto-hide and edge reveal
-- Pinning and drag-to-reorder
-- Context menus
 - Theme integration
 
 ## License

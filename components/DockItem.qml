@@ -7,6 +7,7 @@ Item {
   id: root
 
   required property string desktopId
+  required property int itemIndex
   required property int slotSize
   required property int iconSize
   required property real magnification
@@ -15,6 +16,12 @@ Item {
   required property string clickAction
   required property string position
   required property bool vertical
+  property real reorderOffset: 0
+  signal dragStarted(int itemIndex)
+  signal dragMoved(real mainPosition)
+  signal dragFinished()
+  signal addApplicationRequested()
+  signal removeRequested(string desktopId)
 
   // Reading the model makes this binding update when Quickshell finishes its
   // asynchronous desktop-entry scan. Calling byId() alone is not reactive.
@@ -28,7 +35,11 @@ Item {
     var modelRevision = toplevels.length
     return findRunningToplevel()
   }
-  readonly property real itemCenter: vertical ? y + height / 2 : x + width / 2
+  readonly property real dragOffset: dragHandler.active
+    ? vertical ? dragHandler.activeTranslation.y : dragHandler.activeTranslation.x
+    : 0
+  readonly property real itemCenter: (vertical ? y + height / 2 : x + width / 2)
+    + dragOffset + reorderOffset
   readonly property real distance: Math.abs(pointerPosition - itemCenter)
   readonly property real influence: pointerPosition < -1000
     ? 0
@@ -37,6 +48,24 @@ Item {
 
   function normalizedId(value) {
     return String(value || "").toLowerCase().replace(/\.desktop$/, "")
+  }
+
+  function webAppId() {
+    if (!entry || !entry.command) return ""
+
+    for (var i = 0; i < entry.command.length; ++i) {
+      var match = String(entry.command[i]).match(/https?:\/\/[^?#\s]+/i)
+      if (!match) continue
+
+      var url = match[0].replace(/^https?:\/\//i, "").replace(/\/$/, "")
+      try {
+        url = decodeURIComponent(url)
+      } catch (error) {
+        // Keep the encoded URL; it can still match the generated app ID.
+      }
+      return url.toLowerCase().replace(/[^a-z0-9]/g, "")
+    }
+    return ""
   }
 
   function matchesEntry(toplevel) {
@@ -50,7 +79,10 @@ Item {
       var id = normalizedId(ids[i])
       if (id && appId === id) return true
     }
-    return false
+
+    var generatedWebAppId = webAppId()
+    return generatedWebAppId.length >= 6
+      && appId.replace(/[^a-z0-9]/g, "").indexOf(generatedWebAppId) >= 0
   }
 
   function findRunningToplevel() {
@@ -75,8 +107,22 @@ Item {
     launch()
   }
 
+  function closeRunning() {
+    if (runningToplevel)
+      runningToplevel.close()
+  }
+
   width: vertical ? slotSize + 6 : slotSize
   height: vertical ? slotSize : slotSize + 6
+  z: dragHandler.active ? 2 : 0
+  transform: Translate {
+    x: root.vertical ? 0 : root.dragOffset + root.reorderOffset
+    y: root.vertical ? root.dragOffset + root.reorderOffset : 0
+  }
+
+  Behavior on reorderOffset {
+    NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+  }
 
   Item {
     id: iconContainer
@@ -138,7 +184,7 @@ Item {
   Rectangle {
     id: tooltip
 
-    visible: mouse.hovered
+    visible: mouse.hovered && !contextMenu.visible
     x: root.position === "left"
       ? iconContainer.x + iconContainer.width + 12
       : root.position === "right"
@@ -174,5 +220,42 @@ Item {
   TapHandler {
     acceptedButtons: Qt.LeftButton
     onTapped: root.activateOrLaunch()
+  }
+
+  TapHandler {
+    acceptedButtons: Qt.RightButton
+    onTapped: contextMenu.open()
+  }
+
+  DragHandler {
+    id: dragHandler
+
+    target: null
+    acceptedButtons: Qt.LeftButton
+    xAxis.enabled: !root.vertical
+    yAxis.enabled: root.vertical
+    onActiveChanged: {
+      if (active)
+        root.dragStarted(root.itemIndex)
+      else
+        root.dragFinished()
+    }
+    onActiveTranslationChanged: {
+      if (active)
+        root.dragMoved((root.vertical ? root.y + root.height / 2 : root.x + root.width / 2)
+          + (root.vertical ? activeTranslation.y : activeTranslation.x))
+    }
+  }
+
+  DockContextMenu {
+    id: contextMenu
+
+    anchorItem: root
+    position: root.position
+    canClose: root.runningToplevel !== null
+    onOpenNewWindow: root.launch()
+    onCloseWindow: root.closeRunning()
+    onAddApplication: root.addApplicationRequested()
+    onRemoveFromDock: root.removeRequested(root.desktopId)
   }
 }

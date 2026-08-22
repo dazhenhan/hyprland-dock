@@ -3,14 +3,15 @@
   "magnification": 1.2,
   "magnificationRadius": 95,
   "margin": 10,
+  "backgroundOpacity": 0.88,
   "position": "bottom",
   "fullLength": false,
   "reserveSpace": true,
   "clickAction": "focus-or-launch",
   "pinned": [
     "org.gnome.Nautilus",
-    "com.mitchellh.ghostty",
     "com.google.Chrome",
+    "com.mitchellh.ghostty",
     "code",
     "obsidian",
     "chatgpt"

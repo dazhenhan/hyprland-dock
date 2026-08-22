@@ -15,6 +15,7 @@ Item {
     magnification: 1.2,
     magnificationRadius: 95,
     margin: 10,
+    backgroundOpacity: 0.88,
     position: "bottom",
     fullLength: false,
     reserveSpace: true,
@@ -40,14 +41,57 @@ Item {
     }
   }
 
+  function reorderPinned(from, to) {
+    if (from === to || from < 0 || to < 0
+        || from >= settings.pinned.length || to >= settings.pinned.length)
+      return
+
+    var pinned = settings.pinned.slice()
+    var moved = pinned.splice(from, 1)[0]
+    pinned.splice(to, 0, moved)
+
+    savePinned(pinned)
+  }
+
+  function pinApplication(desktopId) {
+    if (!desktopId || settings.pinned.indexOf(desktopId) >= 0) return
+
+    var pinned = settings.pinned.slice()
+    pinned.push(desktopId)
+    savePinned(pinned)
+  }
+
+  function unpinApplication(desktopId) {
+    var index = settings.pinned.indexOf(desktopId)
+    if (index < 0) return
+
+    var pinned = settings.pinned.slice()
+    pinned.splice(index, 1)
+    savePinned(pinned)
+  }
+
+  function savePinned(pinned) {
+    var updated = {}
+    for (var key in settings)
+      updated[key] = settings[key]
+    updated.pinned = pinned
+
+    settings = updated
+    configFile.setText(JSON.stringify(updated, null, 2) + "\n")
+  }
+
   FileView {
+    id: configFile
+
     path: root.configPath
     watchChanges: true
     printErrors: false
+    blockWrites: true
     onLoaded: root.loadSettings(text())
     // FileView.text() is still stale inside onFileChanged. Reload first and
     // parse the fresh contents when onLoaded fires.
     onFileChanged: reload()
+    onSaveFailed: error => console.warn("Dock: could not save " + root.configPath + ":", error)
   }
 
   Variants {
@@ -58,6 +102,9 @@ Item {
         required property var modelData
         screen: modelData
         settings: root.settings
+        onReorderRequested: (from, to) => root.reorderPinned(from, to)
+        onPinRequested: desktopId => root.pinApplication(desktopId)
+        onUnpinRequested: desktopId => root.unpinApplication(desktopId)
       }
     }
   }
