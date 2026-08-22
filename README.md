@@ -15,6 +15,7 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Fuzzy application search for adding dock items
 - Configurable dock background transparency
 - Optional reserved screen space
+- Optional auto-hide with screen-edge reveal
 - Live JSON configuration reload
 - Multi-monitor support
 
@@ -134,6 +135,7 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
   "position": "bottom",
   "fullLength": false,
   "reserveSpace": true,
+  "autoHide": false,
   "clickAction": "focus-or-launch",
   "pinned": [
     "org.gnome.Nautilus",
@@ -155,6 +157,7 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
 | `position` | Screen edge: `top`, `bottom`, `left`, or `right` |
 | `fullLength` | Fill the screen width, or height for a vertical dock |
 | `reserveSpace` | When `true`, tiled windows stop beside the dock |
+| `autoHide` | Hide the dock until the pointer reaches its screen edge; can also be toggled from the right-click menu |
 | `clickAction` | `focus-or-launch` focuses an existing window; `launch` always starts a new instance |
 | `pinned` | Ordered desktop-entry IDs displayed in the dock |
 
@@ -166,7 +169,7 @@ find /usr/share/applications ~/.local/share/applications \
   | sed 's#.*/##; s/\.desktop$//' | sort -u
 ```
 
-The configuration file is watched and updates automatically. Drag a dock icon to another slot to reorder it; the new `pinned` order is written back to this file.
+The configuration file is watched and updates automatically. Drag a dock icon to another slot to reorder it; the new `pinned` order is written back to this file. When auto-hide is enabled, the dock overlays windows instead of reserving screen space.
 
 For a full-height vertical dock on the left, use:
 
@@ -202,7 +205,6 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 
 ## Roadmap
 
-- Auto-hide and edge reveal
 - Theme integration
 
 ## License

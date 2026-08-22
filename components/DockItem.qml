@@ -14,6 +14,7 @@ Item {
   required property real magnificationRadius
   required property real pointerPosition
   required property string clickAction
+  required property bool autoHide
   required property string position
   required property bool vertical
   property real reorderOffset: 0
@@ -22,6 +23,8 @@ Item {
   signal dragFinished()
   signal addApplicationRequested()
   signal removeRequested(string desktopId)
+  signal autoHideToggled(bool enabled)
+  signal contextMenuVisibilityChanged(bool visible)
 
   // Reading the model makes this binding update when Quickshell finishes its
   // asynchronous desktop-entry scan. Calling byId() alone is not reactive.
@@ -253,9 +256,12 @@ Item {
     anchorItem: root
     position: root.position
     canClose: root.runningToplevel !== null
+    autoHide: root.autoHide
+    onVisibleChanged: root.contextMenuVisibilityChanged(visible)
     onOpenNewWindow: root.launch()
     onCloseWindow: root.closeRunning()
     onAddApplication: root.addApplicationRequested()
     onRemoveFromDock: root.removeRequested(root.desktopId)
+    onToggleAutoHide: root.autoHideToggled(!root.autoHide)
   }
 }

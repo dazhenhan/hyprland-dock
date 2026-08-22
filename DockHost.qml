@@ -19,6 +19,7 @@ Item {
     position: "bottom",
     fullLength: false,
     reserveSpace: true,
+    autoHide: false,
     clickAction: "focus-or-launch",
     pinned: [
       "org.gnome.Nautilus",
@@ -71,10 +72,14 @@ Item {
   }
 
   function savePinned(pinned) {
+    saveSetting("pinned", pinned)
+  }
+
+  function saveSetting(key, value) {
     var updated = {}
-    for (var key in settings)
-      updated[key] = settings[key]
-    updated.pinned = pinned
+    for (var setting in settings)
+      updated[setting] = settings[setting]
+    updated[key] = value
 
     settings = updated
     configFile.setText(JSON.stringify(updated, null, 2) + "\n")
@@ -105,6 +110,7 @@ Item {
         onReorderRequested: (from, to) => root.reorderPinned(from, to)
         onPinRequested: desktopId => root.pinApplication(desktopId)
         onUnpinRequested: desktopId => root.unpinApplication(desktopId)
+        onAutoHideRequested: enabled => root.saveSetting("autoHide", enabled)
       }
     }
   }

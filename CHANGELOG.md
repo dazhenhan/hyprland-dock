@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.1 - 2026-08-22
+
+### Added
+
+- Optional auto-hide with animated screen-edge reveal, configurable through `autoHide` or the dock context menu.
+
+### Fixed
+
+- Keep the revealed dock's full interaction area clickable and allow more time to move from the screen edge to an icon.
+
 ## 1.1.0 - 2026-08-22
 
 ### Added
