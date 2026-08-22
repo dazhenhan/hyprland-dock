@@ -15,6 +15,7 @@ Item {
     magnification: 1.2,
     magnificationRadius: 95,
     margin: 10,
+    backgroundOpacity: 0.88,
     position: "bottom",
     fullLength: false,
     reserveSpace: true,

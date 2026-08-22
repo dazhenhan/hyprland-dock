@@ -17,6 +17,12 @@ PanelWindow {
   readonly property real magnification: settings.magnification || 1.65
   readonly property real magnificationRadius: settings.magnificationRadius || 110
   readonly property int edgeMargin: settings.margin === undefined ? 10 : settings.margin
+  readonly property real backgroundOpacity: {
+    var value = Number(settings.backgroundOpacity)
+    return settings.backgroundOpacity === undefined || isNaN(value)
+      ? 0.88
+      : Math.max(0, Math.min(1, value))
+  }
   readonly property bool reserveSpace: settings.reserveSpace === undefined ? true : settings.reserveSpace
   readonly property string clickAction: settings.clickAction || "focus-or-launch"
   readonly property string requestedPosition: settings.position || "bottom"
@@ -93,7 +99,7 @@ PanelWindow {
     width: root.vertical ? root.iconSize + 24 : parent.width
     height: root.vertical ? parent.height : root.iconSize + 24
     radius: 20
-    color: Qt.rgba(0.08, 0.09, 0.11, 0.88)
+    color: Qt.rgba(0.08, 0.09, 0.11, root.backgroundOpacity)
     border.width: 1
     border.color: Qt.rgba(1, 1, 1, 0.18)
 

@@ -12,6 +12,7 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Running-application indicators
 - Drag-to-reorder with persistent pinned-app order
 - Right-click actions to open a new window or close a running app
+- Configurable dock background transparency
 - Optional reserved screen space
 - Live JSON configuration reload
 - Multi-monitor support
@@ -126,6 +127,7 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
   "magnification": 1.2,
   "magnificationRadius": 95,
   "margin": 10,
+  "backgroundOpacity": 0.88,
   "position": "bottom",
   "fullLength": false,
   "reserveSpace": true,
@@ -146,6 +148,7 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
 | `magnification` | Maximum icon scale under the pointer |
 | `magnificationRadius` | Distance over which nearby icons magnify |
 | `margin` | Distance between the dock and screen edge |
+| `backgroundOpacity` | Dock background opacity from `0.0` (transparent) to `1.0` (opaque) |
 | `position` | Screen edge: `top`, `bottom`, `left`, or `right` |
 | `fullLength` | Fill the screen width, or height for a vertical dock |
 | `reserveSpace` | When `true`, tiled windows stop beside the dock |
@@ -198,7 +201,6 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 
 - Auto-hide and edge reveal
 - Pinning applications from the dock
-- Context menus
 - Theme integration
 
 ## License
