@@ -6,6 +6,7 @@ config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 bin_home="${XDG_BIN_HOME:-$HOME/.local/bin}"
 app_dir="$data_home/hyprland-dock"
 config_dir="$config_home/hyprland-dock"
+desktop_file="$data_home/applications/hyprland-dock.desktop"
 purge=false
 
 case "${1:-}" in
@@ -27,6 +28,7 @@ if command -v qs >/dev/null 2>&1; then
 fi
 
 rm -f -- "$config_home/autostart/hyprland-dock.desktop"
+rm -f -- "$desktop_file"
 rm -f -- "$bin_home/hyprland-dock"
 rm -rf -- "$app_dir"
 

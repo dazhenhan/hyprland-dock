@@ -44,6 +44,8 @@ Run the dock immediately with:
 hyprland-dock --daemonize
 ```
 
+Installed copies also appear as **Hyprland Dock** in application launchers. Selecting it safely starts or restarts the dock.
+
 Manage autostart later from the CLI:
 
 ```bash

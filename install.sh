@@ -8,6 +8,8 @@ config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
 bin_home="${XDG_BIN_HOME:-$HOME/.local/bin}"
 app_dir="$data_home/hyprland-dock"
 config_dir="$config_home/hyprland-dock"
+desktop_dir="$data_home/applications"
+desktop_file="$desktop_dir/hyprland-dock.desktop"
 install_autostart=true
 
 usage() {
@@ -72,7 +74,7 @@ if [[ -z "$source_dir" ]]; then
   source_dir="$temp_dir"
 fi
 
-install -d "$app_dir" "$config_dir" "$bin_home"
+install -d "$app_dir" "$config_dir" "$bin_home" "$desktop_dir"
 rm -rf -- "$app_dir/components"
 cp -R -- "$source_dir/components" "$app_dir/components"
 install -m 0644 "$source_dir/shell.qml" "$app_dir/shell.qml"
@@ -81,6 +83,20 @@ install -m 0644 "$source_dir/LICENSE" "$app_dir/LICENSE"
 install -m 0755 "$source_dir/uninstall.sh" "$app_dir/uninstall.sh"
 install -m 0755 "$source_dir/install.sh" "$app_dir/install.sh"
 install -m 0755 "$source_dir/scripts/hyprland-dock" "$bin_home/hyprland-dock"
+
+cat >"$desktop_file" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Hyprland Dock
+Comment=Start or restart the application dock
+Exec="$bin_home/hyprland-dock" restart
+Icon=preferences-desktop
+Terminal=false
+Categories=Utility;
+Keywords=Dock;Launcher;Hyprland;
+StartupNotify=false
+EOF
+chmod 0644 "$desktop_file"
 
 if [[ ! -f "$config_dir/dock.json" ]]; then
   install -m 0644 "$source_dir/config/dock.json" "$config_dir/dock.json"
@@ -99,6 +115,9 @@ Hyprland Dock installed successfully.
 
 Run now:
   $bin_home/hyprland-dock --daemonize
+
+Application launcher:
+  Hyprland Dock
 
 Configure:
   $config_dir/dock.json
