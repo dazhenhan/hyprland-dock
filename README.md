@@ -11,7 +11,8 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Focuses an existing application on another workspace
 - Running-application indicators
 - Drag-to-reorder with persistent pinned-app order
-- Right-click actions to open a new window or close a running app
+- Right-click actions to launch, close, pin, or unpin applications
+- Fuzzy application search for adding dock items
 - Configurable dock background transparency
 - Optional reserved screen space
 - Live JSON configuration reload
@@ -200,7 +201,6 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 ## Roadmap
 
 - Auto-hide and edge reveal
-- Pinning applications from the dock
 - Theme integration
 
 ## License

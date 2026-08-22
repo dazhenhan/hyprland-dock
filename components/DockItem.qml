@@ -20,6 +20,8 @@ Item {
   signal dragStarted(int itemIndex)
   signal dragMoved(real mainPosition)
   signal dragFinished()
+  signal addApplicationRequested()
+  signal removeRequested(string desktopId)
 
   // Reading the model makes this binding update when Quickshell finishes its
   // asynchronous desktop-entry scan. Calling byId() alone is not reactive.
@@ -253,5 +255,7 @@ Item {
     canClose: root.runningToplevel !== null
     onOpenNewWindow: root.launch()
     onCloseWindow: root.closeRunning()
+    onAddApplication: root.addApplicationRequested()
+    onRemoveFromDock: root.removeRequested(root.desktopId)
   }
 }

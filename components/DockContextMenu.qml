@@ -9,13 +9,15 @@ PopupWindow {
   required property bool canClose
   signal openNewWindow()
   signal closeWindow()
+  signal addApplication()
+  signal removeFromDock()
 
   function open() {
     visible = true
   }
 
   implicitWidth: 180
-  implicitHeight: 88
+  implicitHeight: 174
   color: "transparent"
   grabFocus: true
 
@@ -62,6 +64,34 @@ PopupWindow {
 
     Column {
       anchors.centerIn: parent
+
+      DockMenuAction {
+        text: "Add Application"
+        onTriggered: {
+          root.visible = false
+          root.addApplication()
+        }
+      }
+
+      DockMenuAction {
+        text: "Remove from Dock"
+        onTriggered: {
+          root.visible = false
+          root.removeFromDock()
+        }
+      }
+
+      Item {
+        width: 168
+        height: 10
+
+        Rectangle {
+          anchors.centerIn: parent
+          width: 144
+          height: 1
+          color: Qt.rgba(1, 1, 1, 0.16)
+        }
+      }
 
       DockMenuAction {
         text: "Open New Window"

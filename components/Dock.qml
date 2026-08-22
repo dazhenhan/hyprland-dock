@@ -9,6 +9,8 @@ PanelWindow {
 
   required property var settings
   signal reorderRequested(int from, int to)
+  signal pinRequested(string desktopId)
+  signal unpinRequested(string desktopId)
 
   property int dragSource: -1
   property int dragTarget: -1
@@ -153,9 +155,20 @@ PanelWindow {
           }
           onDragMoved: mainPosition => root.updateDragTarget(mainPosition)
           onDragFinished: root.finishDrag()
+          onAddApplicationRequested: appPicker.open()
+          onRemoveRequested: desktopId => root.unpinRequested(desktopId)
         }
       }
     }
+  }
+
+  DockAppPicker {
+    id: appPicker
+
+    anchorItem: dockBackground
+    position: root.position
+    pinned: root.pinned
+    onApplicationSelected: desktopId => root.pinRequested(desktopId)
   }
 
   HoverHandler {

@@ -6,6 +6,7 @@
 
 - Drag-to-reorder pinned applications with automatic config persistence.
 - Right-click actions to open a new window or close a running application.
+- Fuzzy application picker and right-click actions for pinning or unpinning apps.
 - Configurable dock background transparency through `backgroundOpacity`.
 
 ### Fixed
