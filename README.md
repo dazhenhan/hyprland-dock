@@ -2,7 +2,7 @@
 
 A lightweight macOS-inspired application dock for Hyprland, built with Quickshell and Qt/QML.
 
-![Hyprland Dock running at the bottom of a Hyprland desktop](preview.png)
+<img width="1360" height="824" alt="image" src="https://github.com/user-attachments/assets/ca03cf21-322a-4c27-ae6a-c538977d838d" />
 
 ## Features
 
@@ -24,6 +24,8 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 - Hyprland
 - Quickshell 0.3 or newer
 - A working freedesktop icon theme
+
+![Hyprland Dock running at the bottom of a Hyprland desktop](preview.png)
 
 ## Install
 
@@ -210,3 +212,5 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 ## License
 
 [MIT](LICENSE)
+
+
