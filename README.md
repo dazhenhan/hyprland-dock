@@ -2,7 +2,7 @@
 
 A lightweight macOS-inspired application dock for Hyprland, built with Quickshell and Qt/QML.
 
-<img width="1360" height="824" alt="image" src="https://github.com/user-attachments/assets/ca03cf21-322a-4c27-ae6a-c538977d838d" />
+![Hyprland Dock running at the bottom of a Hyprland desktop](preview_2.png)
 
 ## Features
 
