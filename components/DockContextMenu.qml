@@ -6,11 +6,13 @@ PopupWindow {
 
   required property Item anchorItem
   required property string position
+  required property bool pinned
   required property bool canClose
   required property bool autoHide
   signal openNewWindow()
   signal closeWindow()
   signal addApplication()
+  signal pinToDock()
   signal removeFromDock()
   signal toggleAutoHide()
 
@@ -76,10 +78,13 @@ PopupWindow {
       }
 
       DockMenuAction {
-        text: "Remove from Dock"
+        text: root.pinned ? "Remove from Dock" : "Pin to Dock"
         onTriggered: {
           root.visible = false
-          root.removeFromDock()
+          if (root.pinned)
+            root.removeFromDock()
+          else
+            root.pinToDock()
         }
       }
 

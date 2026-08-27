@@ -2,13 +2,36 @@
 
 A lightweight macOS-inspired application dock for Hyprland, built with Quickshell and Qt/QML.
 
+## About this fork
+
+This repository is a feature-focused fork of
+[Nick Friedrich's original Hyprland Dock](https://github.com/nick-friedrich/hyprland-dock).
+The original author attribution and MIT license are retained.
+
+### Differences from upstream
+
+- Uses traditional click-to-minimize and click-to-restore behavior instead of
+  focusing an already running application or launching a duplicate window.
+- Restores each application window to its original workspace and brings the
+  most recently used restored window to the front.
+- Dynamically adds running, unpinned applications to the Dock and allows them
+  to be pinned from the context menu.
+- Groups multiple windows belonging to the same application and toggles them
+  together using more robust desktop-entry and window-class matching.
+- Exposes a one-way `hideDesktop` IPC action suitable for a global `Super+D`
+  binding; applications are restored individually from the Dock.
+- Adds a configurable `screens` allowlist so the Dock can be limited to
+  selected outputs, such as the built-in `eDP-1` display.
+
 ![Hyprland Dock running at the bottom of a Hyprland desktop](preview_2.png)
 
 ## Features
 
 - Smooth pointer-distance magnification
 - Freedesktop application icons and launching
-- Focuses an existing application on another workspace
+- Dynamically shows running applications that are not pinned
+- Minimizes running applications, restores them to their original workspaces,
+  and brings the restored application to the front
 - Running-application indicators
 - Drag-to-reorder with persistent pinned-app order
 - Right-click actions to launch, close, pin, or unpin applications
@@ -32,13 +55,13 @@ A lightweight macOS-inspired application dock for Hyprland, built with Quickshel
 Make sure Quickshell is installed, then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/dazhenhan/hyprland-dock/master/install.sh | bash
 ```
 
 The installer uses only user directories, requires no `sudo`, and creates an XDG autostart entry. To install without autostart:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nick-friedrich/hyprland-dock/master/install.sh | bash -s -- --no-autostart
+curl -fsSL https://raw.githubusercontent.com/dazhenhan/hyprland-dock/master/install.sh | bash -s -- --no-autostart
 ```
 
 Run the dock immediately with:
@@ -93,7 +116,7 @@ hyprland-dock stop
 Then install and enable the plugin:
 
 ```bash
-omarchy plugin add https://github.com/nick-friedrich/hyprland-dock.git --enable
+omarchy plugin add https://github.com/dazhenhan/hyprland-dock.git --enable
 ```
 
 The plugin uses the same `~/.config/hyprland-dock/dock.json` configuration as the standalone version. On a plugin-only installation, create it from the bundled defaults:
@@ -138,7 +161,9 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
   "fullLength": false,
   "reserveSpace": true,
   "autoHide": false,
-  "clickAction": "focus-or-launch",
+  "screens": [],
+  "showRunningApplications": true,
+  "clickAction": "toggle-minimize-or-launch",
   "pinned": [
     "org.gnome.Nautilus",
     "com.mitchellh.ghostty",
@@ -160,7 +185,9 @@ Installed copies use `~/.config/hyprland-dock/dock.json`. When running from the 
 | `fullLength` | Fill the screen width, or height for a vertical dock |
 | `reserveSpace` | When `true`, tiled windows stop beside the dock |
 | `autoHide` | Hide the dock until the pointer reaches its screen edge; can also be toggled from the right-click menu |
-| `clickAction` | `focus-or-launch` focuses an existing window; `launch` always starts a new instance |
+| `screens` | Output-name allowlist. An empty array shows the Dock on every screen; for example, `["eDP-1"]` limits it to the built-in laptop display |
+| `showRunningApplications` | Show unpinned running applications after the pinned icons |
+| `clickAction` | `toggle-minimize-or-launch` moves every visible window for a running app into a hidden Hyprland special workspace, then restores each one to its original workspace and brings the most recently used restored window to the front; `launch` always starts a new instance. The legacy `focus-or-launch` value behaves identically. |
 | `pinned` | Ordered desktop-entry IDs displayed in the dock |
 
 Pinned values are desktop-entry filenames without the `.desktop` suffix. List available IDs with:
@@ -172,6 +199,14 @@ find /usr/share/applications ~/.local/share/applications \
 ```
 
 The configuration file is watched and updates automatically. Drag a dock icon to another slot to reorder it; the new `pinned` order is written back to this file. When auto-hide is enabled, the dock overlays windows instead of reserving screen space.
+
+When installed as an Omarchy plugin, bind its shell IPC action in
+`~/.config/hypr/bindings.lua` to hide all windows on the currently visible
+workspaces. Restore applications individually by clicking their Dock icons:
+
+```lua
+o.bind("SUPER + D", "Hide desktop windows", "omarchy-shell -q hyprland-dock hideDesktop")
+```
 
 For a full-height vertical dock on the left, use:
 
@@ -212,5 +247,3 @@ This disables cursor warping for all workspace changes, not only dock clicks.
 ## License
 
 [MIT](LICENSE)
-
-

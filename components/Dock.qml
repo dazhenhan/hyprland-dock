@@ -8,6 +8,7 @@ PanelWindow {
   id: root
 
   required property var settings
+  required property var windowController
   signal reorderRequested(int from, int to)
   signal pinRequested(string desktopId)
   signal unpinRequested(string desktopId)
@@ -30,6 +31,8 @@ PanelWindow {
   }
   readonly property bool reserveSpace: settings.reserveSpace === undefined ? true : settings.reserveSpace
   readonly property bool autoHide: settings.autoHide === undefined ? false : settings.autoHide
+  readonly property bool showRunningApplications: settings.showRunningApplications === undefined
+    ? true : settings.showRunningApplications
   readonly property string clickAction: settings.clickAction || "focus-or-launch"
   readonly property string requestedPosition: settings.position || "bottom"
   readonly property string position: ["top", "bottom", "left", "right"].indexOf(requestedPosition) >= 0
@@ -38,6 +41,9 @@ PanelWindow {
   readonly property bool vertical: position === "left" || position === "right"
   readonly property bool fullLength: settings.fullLength === undefined ? false : settings.fullLength
   readonly property var pinned: settings.pinned || []
+  readonly property var dynamicApplications: showRunningApplications
+    ? windowController.runningUnpinnedDesktopIds || [] : []
+  readonly property var displayApplications: pinned.concat(dynamicApplications)
   readonly property int itemSize: iconSize + 14
   readonly property int reservedSize: iconSize + 24 + edgeMargin
   readonly property int mainPadding: 10
@@ -189,17 +195,19 @@ PanelWindow {
 
       // Keep one spare cell so a settings reload cannot transiently reduce the
       // grid capacity before the repeater updates its delegates.
-      columns: root.vertical ? 1 : Math.max(1, root.pinned.length + 1)
-      rows: root.vertical ? Math.max(1, root.pinned.length + 1) : 1
+      columns: root.vertical ? 1 : Math.max(1, root.displayApplications.length + 1)
+      rows: root.vertical ? Math.max(1, root.displayApplications.length + 1) : 1
 
       Repeater {
-        model: root.pinned
+        model: root.displayApplications
 
         DockItem {
           required property string modelData
           required property int index
 
           desktopId: modelData
+          pinned: index < root.pinned.length
+          windowController: root.windowController
           itemIndex: index
           slotSize: root.itemSize
           iconSize: root.iconSize
@@ -210,7 +218,7 @@ PanelWindow {
           autoHide: root.autoHide
           position: root.position
           vertical: root.vertical
-          reorderOffset: root.reorderOffset(index)
+          reorderOffset: pinned ? root.reorderOffset(index) : 0
           onDragStarted: itemIndex => {
             root.dragSource = itemIndex
             root.dragTarget = itemIndex
@@ -218,6 +226,7 @@ PanelWindow {
           onDragMoved: mainPosition => root.updateDragTarget(mainPosition)
           onDragFinished: root.finishDrag()
           onAddApplicationRequested: appPicker.open()
+          onPinRequested: desktopId => root.pinRequested(desktopId)
           onRemoveRequested: desktopId => root.unpinRequested(desktopId)
           onAutoHideToggled: enabled => root.autoHideRequested(enabled)
           onContextMenuVisibilityChanged: visible => {

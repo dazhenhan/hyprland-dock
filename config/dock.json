@@ -8,7 +8,9 @@
   "fullLength": false,
   "reserveSpace": true,
   "autoHide": false,
-  "clickAction": "focus-or-launch",
+  "screens": [],
+  "showRunningApplications": true,
+  "clickAction": "toggle-minimize-or-launch",
   "pinned": [
     "org.gnome.Nautilus",
     "com.google.Chrome",

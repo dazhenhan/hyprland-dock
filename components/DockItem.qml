@@ -1,12 +1,13 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import Quickshell.Widgets
 
 Item {
   id: root
 
   required property string desktopId
+  required property bool pinned
+  required property var windowController
   required property int itemIndex
   required property int slotSize
   required property int iconSize
@@ -22,6 +23,7 @@ Item {
   signal dragMoved(real mainPosition)
   signal dragFinished()
   signal addApplicationRequested()
+  signal pinRequested(string desktopId)
   signal removeRequested(string desktopId)
   signal autoHideToggled(bool enabled)
   signal contextMenuVisibilityChanged(bool visible)
@@ -33,11 +35,7 @@ Item {
     var modelRevision = applications.length
     return DesktopEntries.byId(desktopId)
   }
-  readonly property var toplevels: ToplevelManager.toplevels.values || []
-  readonly property var runningToplevel: {
-    var modelRevision = toplevels.length
-    return findRunningToplevel()
-  }
+  readonly property bool running: windowController.hasRunningWindow(desktopId, entry)
   readonly property real dragOffset: dragHandler.active
     ? vertical ? dragHandler.activeTranslation.y : dragHandler.activeTranslation.x
     : 0
@@ -49,52 +47,6 @@ Item {
     : Math.exp(-(distance * distance) / (magnificationRadius * magnificationRadius))
   readonly property real iconScale: 1 + (magnification - 1) * influence
 
-  function normalizedId(value) {
-    return String(value || "").toLowerCase().replace(/\.desktop$/, "")
-  }
-
-  function webAppId() {
-    if (!entry || !entry.command) return ""
-
-    for (var i = 0; i < entry.command.length; ++i) {
-      var match = String(entry.command[i]).match(/https?:\/\/[^?#\s]+/i)
-      if (!match) continue
-
-      var url = match[0].replace(/^https?:\/\//i, "").replace(/\/$/, "")
-      try {
-        url = decodeURIComponent(url)
-      } catch (error) {
-        // Keep the encoded URL; it can still match the generated app ID.
-      }
-      return url.toLowerCase().replace(/[^a-z0-9]/g, "")
-    }
-    return ""
-  }
-
-  function matchesEntry(toplevel) {
-    if (!toplevel) return false
-    var appId = normalizedId(toplevel.appId)
-    if (!appId) return false
-
-    var ids = [desktopId]
-    if (entry) ids.push(entry.id, entry.startupClass)
-    for (var i = 0; i < ids.length; ++i) {
-      var id = normalizedId(ids[i])
-      if (id && appId === id) return true
-    }
-
-    var generatedWebAppId = webAppId()
-    return generatedWebAppId.length >= 6
-      && appId.replace(/[^a-z0-9]/g, "").indexOf(generatedWebAppId) >= 0
-  }
-
-  function findRunningToplevel() {
-    for (var i = 0; i < toplevels.length; ++i) {
-      if (matchesEntry(toplevels[i])) return toplevels[i]
-    }
-    return null
-  }
-
   function launch() {
     if (entry)
       entry.execute()
@@ -103,16 +55,14 @@ Item {
   }
 
   function activateOrLaunch() {
-    if (clickAction === "focus-or-launch" && runningToplevel) {
-      runningToplevel.activate()
-      return
+    if (clickAction === "focus-or-launch" || clickAction === "toggle-minimize-or-launch") {
+      if (windowController.toggleApplication(desktopId, entry)) return
     }
     launch()
   }
 
   function closeRunning() {
-    if (runningToplevel)
-      runningToplevel.close()
+    windowController.closeApplication(desktopId, entry)
   }
 
   width: vertical ? slotSize + 6 : slotSize
@@ -180,7 +130,7 @@ Item {
         : root.position === "bottom"
           ? iconContainer.height + 2
           : (iconContainer.height - height) / 2
-      color: root.runningToplevel ? "#f5f5f5" : "transparent"
+      color: root.running ? "#f5f5f5" : "transparent"
     }
   }
 
@@ -235,6 +185,7 @@ Item {
 
     target: null
     acceptedButtons: Qt.LeftButton
+    enabled: root.pinned
     xAxis.enabled: !root.vertical
     yAxis.enabled: root.vertical
     onActiveChanged: {
@@ -255,12 +206,14 @@ Item {
 
     anchorItem: root
     position: root.position
-    canClose: root.runningToplevel !== null
+    pinned: root.pinned
+    canClose: root.running
     autoHide: root.autoHide
     onVisibleChanged: root.contextMenuVisibilityChanged(visible)
     onOpenNewWindow: root.launch()
     onCloseWindow: root.closeRunning()
     onAddApplication: root.addApplicationRequested()
+    onPinToDock: root.pinRequested(root.desktopId)
     onRemoveFromDock: root.removeRequested(root.desktopId)
     onToggleAutoHide: root.autoHideToggled(!root.autoHide)
   }
